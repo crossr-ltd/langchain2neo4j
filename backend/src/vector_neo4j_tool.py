@@ -2,27 +2,31 @@ from __future__ import annotations
 from database import Neo4jDatabase
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains.base import Chain
+import os
 
 from typing import Any, Dict, List
 
 from pydantic import Field
 from logger import logger
 
+neo4j_url = os.environ.get('NEO4J_URL')
+neo4j_user = os.environ.get('NEO4J_USER')
+neo4j_pass = os.environ.get('NEO4J_PASS')
 
 vector_search = """
 WITH $embedding AS e
-MATCH (m:Movie)
+MATCH (m:GeneProtein)
 WHERE m.embedding IS NOT NULL AND size(m.embedding) = 1536
 WITH m, gds.similarity.cosine(m.embedding, e) AS similarity
 ORDER BY similarity DESC LIMIT 5
 CALL {
   WITH m
-  MATCH (m)-[r:!RATED]->(target)
-  RETURN coalesce(m.name, m.title) + " " + type(r) + " " + coalesce(target.name, target.title) AS result
+  MATCH (m)-[r]->(target)
+  RETURN coalesce(m.name, m.synonyms) + " " + type(r) + " " + coalesce(target.name, target.synonyms) AS result
   UNION
   WITH m
-  MATCH (m)<-[r:!RATED]-(target)
-  RETURN coalesce(target.name, target.title) + " " + type(r) + " " + coalesce(m.name, m.title) AS result
+  MATCH (m)<-[r]-(target)
+  RETURN coalesce(target.name, target.synonyms) + " " + type(r) + " " + coalesce(m.name, m.synonyms) AS result
 }
 RETURN result LIMIT 100
 """
@@ -71,8 +75,8 @@ if __name__ == '__main__':
     from langchain.chat_models import ChatOpenAI
 
     llm = ChatOpenAI(temperature=0.0)
-    database = Neo4jDatabase(host="bolt://100.27.33.83:7687",
-                             user="neo4j", password="room-loans-transmissions")
+    database = Neo4jDatabase(host=neo4j_url,
+                             user=neo4j_user, password=neo4j_pass)
     chain = LLMNeo4jVectorChain(llm=llm, verbose=True, graph=database)
 
     output = chain.run(

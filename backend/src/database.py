@@ -1,15 +1,19 @@
 from typing import List, Optional, Tuple, Dict
 
 from neo4j import GraphDatabase
+import os
 
 from logger import logger
 
+neo4j_url = os.environ.get('NEO4J_URL')
+neo4j_user = os.environ.get('NEO4J_USER')
+neo4j_pass = os.environ.get('NEO4J_PASS')
 
 class Neo4jDatabase:
-    def __init__(self, host: str = "neo4j://localhost:7687",
-                 user: str = "neo4j",
-                 password: str = "pleaseletmein"):
-        """Initialize the movie database"""
+    def __init__(self, host: str = neo4j_url,
+                 user: str = neo4j_user,
+                 password: str = neo4j_pass):
+        """Initialize the graph database"""
 
         self.driver = GraphDatabase.driver(host, auth=(user, password))
 
@@ -26,8 +30,8 @@ class Neo4jDatabase:
 
 
 if __name__ == "__main__":
-    database = Neo4jDatabase(host="bolt://100.27.33.83:7687",
-                             user="neo4j", password="room-loans-transmissions")
+    database = Neo4jDatabase(host=neo4j_url,
+                             user=neo4j_user, password=neo4j_pass)
 
     a = database.query("""
     MATCH (n) RETURN {count: count(*)} AS count

@@ -43,16 +43,16 @@ class MovieAgent(AgentExecutor):
                 name="Cypher search",
                 func=cypher_tool.run,
                 description="""
-                Utilize this tool to search within a movie database, specifically designed to answer movie-related questions.
-                This specialized tool offers streamlined search capabilities to help you find the movie information you need with ease.
+                Utilize this tool to search within a gene knowledge graph database, specifically designed to answer gene, disease and drug-related questions.
+                This specialized tool offers streamlined search capabilities to help you find the gene information you need with ease.
                 Input should be full question.""",
             ),
             Tool(
                 name="Keyword search",
                 func=fulltext_tool.run,
                 description="""Utilize this tool when explicitly told to use keyword search.
-                Input should be a list of relevant movies inferred from the question.
-                Remove stop word "The" from specified movie titles.""",
+                Input should be a list of relevant genes inferred from the question.
+                """,
             ),
             Tool(
                 name="Vector search",
