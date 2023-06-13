@@ -3,7 +3,7 @@
 pip install neo4j pandas gdown tqdm
 
 FILE_ID="1ELuq3k1LtZZ_qt7nxe-H6PyHlyl_p3wG"
-DESTINATION="movie_embeddings.csv"
+DESTINATION="crossr_embeddings.csv"
 
 # Check if the file already exists
 if [ ! -f "$DESTINATION" ]; then

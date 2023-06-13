@@ -33,11 +33,11 @@ def generate_params(input_str):
     """
     Generate full text parameters using the Lucene syntax
     """
-    movie_titles = [title.strip() for title in input_str.split(',')]
+    names = [name.strip() for name in input_str.split(',')]
     # Enclose each movie title in double quotes
-    movie_titles = ['"' + title + '"' for title in movie_titles]
+    names = ['"' + name + '"' for name in names]
     # Join the movie titles with ' OR ' in between
-    transformed_str = ' OR '.join(movie_titles)
+    transformed_str = ' OR '.join(names)
     # Return the transformed string
     return transformed_str
 

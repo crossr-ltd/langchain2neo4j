@@ -15,7 +15,7 @@ neo4j_pass = os.environ.get('NEO4J_PASS')
 
 vector_search = """
 WITH $embedding AS e
-MATCH (m:GeneProtein)
+MATCH (m)
 WHERE m.embedding IS NOT NULL AND size(m.embedding) = 1536
 WITH m, gds.similarity.cosine(m.embedding, e) AS similarity
 ORDER BY similarity DESC LIMIT 5
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     chain = LLMNeo4jVectorChain(llm=llm, verbose=True, graph=database)
 
     output = chain.run(
-        "What type of movie is Grumpier?"
+        "What is related to diabetes?"
     )
 
     print(output)
