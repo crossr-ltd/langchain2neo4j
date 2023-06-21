@@ -2,13 +2,14 @@ from langchain.agents.agent import AgentExecutor
 from langchain.agents.tools import Tool
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
-from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
+from langchain.memory import ConversationBufferWindowMemory, ReadOnlySharedMemory
 from langchain.agents import initialize_agent
 from langchain.agents import AgentType
 
 from cypher_database_tool import LLMCypherGraphChain
 from keyword_neo4j_tool import LLMKeywordGraphChain
 from vector_neo4j_tool import LLMNeo4jVectorChain
+from question_generation_tool import QuestionGenerationTool
 
 
 class MovieAgent(AgentExecutor):
@@ -17,6 +18,10 @@ class MovieAgent(AgentExecutor):
     @staticmethod
     def function_name():
         return "MovieAgent"
+    
+    def return_values(self) -> list[str]:
+        """Return values of the agent."""
+        return ["output"]
 
     @classmethod
     def initialize(cls, movie_graph, model_name, *args, **kwargs):
@@ -25,8 +30,8 @@ class MovieAgent(AgentExecutor):
         else:
             raise Exception(f"Model {model_name} is currently not supported")
 
-        memory = ConversationBufferMemory(
-            memory_key="chat_history", return_messages=True)
+        memory = ConversationBufferWindowMemory(
+            memory_key="chat_history", return_messages=True, k = 1)
         readonlymemory = ReadOnlySharedMemory(memory=memory)
 
         cypher_tool = LLMCypherGraphChain(
@@ -36,6 +41,8 @@ class MovieAgent(AgentExecutor):
         vector_tool = LLMNeo4jVectorChain(
             llm=llm, verbose=True, graph=movie_graph
         )
+        question_tool = QuestionGenerationTool(llm=llm)
+    
 
         # Load the tool configs that are needed.
         tools = [
@@ -47,19 +54,29 @@ class MovieAgent(AgentExecutor):
                 This specialized tool offers streamlined search capabilities to help you find the gene information you need with ease.
                 Input should be full question.""",
             ),
-            Tool(
-                name="Keyword search",
-                func=fulltext_tool.run,
-                description="""Utilize this tool when explicitly told to use keyword search.
-                Input should be a list of relevant genes inferred from the question.
-                """,
-            ),
-            Tool(
-                name="Vector search",
-                func=vector_tool.run,
-                description="Utilize this tool when explicity told to use vector search.Input should be full question.Do not include agent instructions.",
-            ),
+            
+            # Tool(
+            #     name="Vector search",
+            #     func=vector_tool.run,
+            #     description="Utilize this tool when explicity told to use vector search.Input should be full question.Do not include agent instructions.",
+            # ),
 
+            # Tool(
+            #     name="Keyword search",
+            #     func=fulltext_tool.run,
+            #     description="""Utilize this tool when explicitly told to use keyword search.
+            #     Input should be a list of relevant genes inferred from the question.
+            #     """,
+            # ),
+
+
+            Tool(
+                name="Question generation",
+                func=question_tool.run,
+                description="""Utlize the tool when the question given by the user is too general. This tool provide more detailed question 
+                relevant to the user question.""",
+            ),
+            
         ]
 
         agent_chain = initialize_agent(
@@ -71,4 +88,14 @@ class MovieAgent(AgentExecutor):
         super().__init__(*args, **kwargs)
 
     def run(self, *args, **kwargs):
-        return super().run(*args, **kwargs)
+        result = super().run(*args, **kwargs)
+
+        try:
+            result = super().run(*args, **kwargs)
+        except ValueError as e:
+            result = str(e)
+        if not result.startswith("Could not parse LLM output: `"):
+            raise e
+        result = result.removeprefix("Could not parse LLM output: `").removesuffix("`")
+            
+        return result

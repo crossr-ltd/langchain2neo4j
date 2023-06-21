@@ -21,7 +21,7 @@ services:
     ports:
       - 7860:7860
     environment:
-      - OPENAI_API_KEY=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
+      - OPENAI_API_KEY=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
       - NEO4J_URL=neo4j://ec2-107-22-100-129.compute-1.amazonaws.com:7687/
       - NEO4J_USER=mingran
       - NEO4J_PASS=mingran123

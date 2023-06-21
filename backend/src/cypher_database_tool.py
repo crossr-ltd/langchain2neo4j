@@ -80,9 +80,6 @@ RETURN p.context AS RESULT
 MATCH (n:Drug)-[r:AFFECTS]->(g:GeneProtein {{name:'KCNK2'}})
 RETURN n.name AS result
 
-# How are 
-MATCH p=shortestPath((e1)-[:OFFICER_OF|INTERMEDIARY_OF|CONNECTED_TO*]-(e2))
-RETURN [n IN nodes(p) | n.name] AS Names, [r IN relationships(p) | type(r)] AS Relationships
 """
 
 

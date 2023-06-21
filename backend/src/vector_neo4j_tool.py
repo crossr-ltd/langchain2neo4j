@@ -67,7 +67,7 @@ class LLMNeo4jVectorChain(Chain):
             embedding[:5], color="green", end="\n", verbose=self.verbose
         )
         context = self.graph.query(
-            vector_search, {'embedding': embedding})
+            vector_search, {'embedding': embedding}) 
         return {self.output_key: context}
 
 
